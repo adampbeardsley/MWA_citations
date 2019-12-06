@@ -10,7 +10,7 @@ import datetime
 def cal_mjd(yr,mn,dy):
     """ convert calendar date to MJD
     year,month,day (may be decimal) are normal parts of date (Julian)"""
-    
+
     m=mn
     if (yr<0):
         y=yr+1
@@ -24,7 +24,7 @@ def cal_mjd(yr,mn,dy):
     else:
         a=int(y/100)
         b=int(2-a+a/4)
-    
+
     jd=int(365.25*(y+4716))+int(30.6001*(m+1))+dy+b-1524.5
     mjd=jd-2400000.5
 
@@ -32,7 +32,7 @@ def cal_mjd(yr,mn,dy):
 def mjd_cal(mjd):
     """convert MJD to calendar date (yr,mn,dy)
     """
-    
+
     JD=mjd+2400000.5
 
     JD+=.5
@@ -75,7 +75,7 @@ parser.add_option('--verbose','-v',dest='verbose',default=False,
 (options, args) = parser.parse_args()
 
 if len(args)==0:
-    print 'Must supply >=1 library names'
+    print('Must supply >=1 library names')
 
 dates=[]
 publication=OrderedDict()
@@ -83,7 +83,7 @@ bibcodes=[]
 for library in args:
     filename=os.path.join(options.out,'%s_citations.txt' % library)
     if not os.path.exists(filename):
-        print 'Citation file %s does not exist' % filename
+        print('Citation file %s does not exist' % filename)
         sys.exit(1)
     dateoffile=filename.split('_')[-1].split('.')[0]
     f=open(filename)
@@ -91,7 +91,7 @@ for library in args:
 
     curyear=datetime.datetime.now().year+(datetime_mjd(datetime.datetime.now())-
                                           cal_mjd(datetime.datetime.now().year, 1, 1))/365.25
-    
+
     publication[library]=OrderedDict()
 
     for line in lines:
@@ -109,12 +109,12 @@ dates=sorted(set(dates))
 sumofpapers=OrderedDict()
 for library in args:
     sumofpapers[library]=OrderedDict()
-    for date in dates:    
+    for date in dates:
         sumofpapers[library][date]=0
         for bibcode in publication[library].keys():
             if publication[library][bibcode]<=date:
                 sumofpapers[library][date]+=1
-        
+
 
 pubdata={}
 pubdata['cols']=[]
@@ -134,4 +134,3 @@ outpapers=os.path.join(options.out,'MWA_all_papers.json')
 f=open(outpapers,'w')
 f.write(json.dumps(pubdata,sort_keys=True))
 f.close()
-        

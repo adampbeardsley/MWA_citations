@@ -10,6 +10,18 @@ from optparse import OptionParser, OptionGroup
 import datetime
 
 
+class NpEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, numpy.integer):
+            return int(obj)
+        elif isinstance(obj, numpy.floating):
+            return float(obj)
+        elif isinstance(obj, numpy.ndarray):
+            return obj.tolist()
+        else:
+            return super(NpEncoder, self).default(obj)
+
+
 def cal_mjd(yr, mn, dy):
     """ convert calendar date to MJD
     year,month,day (may be decimal) are normal parts of date (Julian)"""
@@ -86,12 +98,12 @@ parser.add_option('--verbose', '-v', dest='verbose', default=False,
 (options, args) = parser.parse_args()
 
 if len(args) == 0:
-    print 'Must supply >=1 library names'
+    print('Must supply >=1 library names')
 
 for library in args:
     filename = os.path.join(options.out, '%s_citations.txt' % library)
     if not os.path.exists(filename):
-        print 'Citation file %s does not exist' % filename
+        print('Citation file ' + filename + ' does not exist') % filename
         sys.exit(1)
     f = open(filename)
     lines = f.readlines()
@@ -110,7 +122,7 @@ for library in args:
         publication[bibcode] = mjd_pub
         data = line.split(':')[1].strip()
         if len(data) > 0:
-            mjds = map(int, data.split(','))
+            mjds = list(map(int, data.split(',')))
             dates += mjds
             citations[bibcode] = mjds
         else:
@@ -121,12 +133,13 @@ for library in args:
     for bibcode in citations.keys():
         citationsperyear_totals[bibcode] = len(citations[bibcode]) / (curyear - int(bibcode[:4]))
 
-    totalcites = numpy.array(citation_totals.values()).sum()
+    totalcites = numpy.array(list(citation_totals.values())).sum()
     # set a minimum threshold for the number of citations
     # otherwise there are too many things to print
+    print(options.mincites, totalcites)
     mincites = int(options.mincites * totalcites)
 
-    totalcitesperyear = numpy.array(citationsperyear_totals.values()).sum()
+    totalcitesperyear = numpy.array(list(citationsperyear_totals.values())).sum()
     # set a minimum threshold for the number of citations
     # otherwise there are too many things to print
     mincitesperyear = int(options.mincitesperyear * totalcitesperyear)
@@ -167,7 +180,7 @@ for library in args:
                                        (curyear - int(bibcode[:4])))
         sumofcites[date]['All Others'] = restofcites
         sumofcitesperyear[date]['All Others'] = restofcitesperyear
-        print date, sumofpapers[date]
+        print(date, sumofpapers[date])
 
     data = {}
     data['cols'] = []
@@ -236,7 +249,7 @@ for library in args:
     outperyear = os.path.join(options.out, '%speryear.json' % library)
     outpapers = os.path.join(options.out, '%s_papers.json' % library)
     f = open(outtotal, 'w')
-    f.write(json.dumps(data, sort_keys=True))
+    f.write(json.dumps(data, sort_keys=True, cls=NpEncoder))
     f.close()
     f = open(outperyear, 'w')
     f.write(json.dumps(dataperyear, sort_keys=True))
@@ -245,6 +258,4 @@ for library in args:
     f.write(json.dumps(pubdata, sort_keys=True))
     f.close()
     if options.verbose:
-        print 'Wrote %s, %s, and %s' % (outtotal,
-                                        outperyear,
-                                        outpapers)
+        print('Wrote ' + outtotal + ', ' + outperyear + ', and ' + outpapers)
