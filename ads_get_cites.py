@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 
-import urllib2
-from urllib2 import HTTPError
-from HTMLParser import HTMLParser
-from htmlentitydefs import name2codepoint
 import datetime
 import os
 import sys
@@ -52,7 +48,7 @@ parser.add_option('--token', '-t', dest='token',
                   help='ADS API token [default=%default]')
 (options, args) = parser.parse_args()
 if len(args) == 0:
-    print 'Must supply >=1 library names'
+    print('Must supply >=1 library names')
 
 ntries = 5  # Number of times to try a web query before giving up
 lib_ids = {'pre-MWA': 'JYhgdTCNTmKhVcwUq0902A', 'MWA': 'LLDgjqnpQdS1fLMFuZ9h1A',
@@ -78,7 +74,7 @@ for library in args:
     outname = os.path.join(options.out,
                            '%s_citations.txt' % (library))
     if options.verbose:
-        print 'Writing to %s...' % outname
+        print('Writing to ' + outname + '...')
     f = open(outname, 'w')
 
     citations = {}
@@ -128,13 +124,13 @@ for library in args:
 
         if bibcode in citations.keys():
             if options.verbose:
-                print '%d citations for %s' % (len(citations[bibcode]), bibcode)
+                print(str(len(citations[bibcode])) + ' citations for ' + bibcode)
             f.write('%s [%d]: %s\n' % (bibcode, mjd_pub,
                                        ','.join(map(str, citations[bibcode]))))
         else:
             citations[bibcode] = []
             if options.verbose:
-                print 'no citations for %s' % bibcode
+                print('no citations for ' + bibcode)
             f.write('%s [%d]:\n' % (bibcode, mjd_pub))
 
     f.close()
